@@ -28,7 +28,7 @@ public class RegistraUsuarioService {
 
     @PostConstruct
     public void init() {
-        System.out.println("Registrado usuário: " + registraUsuario("Professor Rafael"));
+        System.out.println("Registrado usuário: " + registraUsuario("Ewerton PilaCoin"));
     }
 
     @SneakyThrows

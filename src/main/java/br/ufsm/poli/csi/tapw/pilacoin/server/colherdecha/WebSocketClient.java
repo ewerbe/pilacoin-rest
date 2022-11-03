@@ -1,9 +1,10 @@
 package br.ufsm.poli.csi.tapw.pilacoin.server.colherdecha;
 
+import br.ufsm.poli.csi.tapw.pilacoin.model.PilaCoin;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -16,12 +17,19 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Date;
 import java.util.Objects;
+
+import static java.math.BigInteger.valueOf;
 
 @Service
 public class WebSocketClient {
 
-    private MyStompSessionHandler sessionHandler = new MyStompSessionHandler();
+    private static MyStompSessionHandler sessionHandler = new MyStompSessionHandler();
     @Value("${endereco.server}")
     private String enderecoServer;
 
@@ -40,6 +48,11 @@ public class WebSocketClient {
         if (sessionHandler.dificuldade != null) {
             System.out.println("Dificuldade Atual: " + sessionHandler.dificuldade);
         }
+    }
+
+    private static String getDificuldade() {
+        String dificuldade = String.valueOf(sessionHandler.dificuldade);
+        return dificuldade;
     }
 
     private static class MyStompSessionHandler implements StompSessionHandler {
@@ -86,4 +99,72 @@ public class WebSocketClient {
         private String dificuldade;
     }
 
+    public String mineradorPilaCoin (String dififuldade) {
+
+        return null;
+    }
+
+
+    //////////////////////////////////////
+
+    public static KeyPair kp;
+@SneakyThrows
+private static void inicio() {
+    KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+    kpg.initialize(2048);
+    kp = kpg.generateKeyPair();
+
+    new Thread(t1).start();
+    new Thread(t1).start();
+    new Thread(t1).start();
+    new Thread(t1).start();
+    new Thread(t1).start();
+}
+
+
+
+
+    private static Runnable t1 = new Runnable() {
+        public void run() {
+            try{
+                miner(getDificuldade());
+            } catch (Exception e){}
+
+        }
+    };
+
+
+    @SneakyThrows
+    private static void miner(String dificuldade){
+        BigInteger numTentativas = valueOf(0);
+
+
+        while (true) {
+
+            SecureRandom sr = new SecureRandom();
+
+            PilaCoin pilaCoin = PilaCoin.builder()
+                    .dataCriacao(new Date())
+                    .chaveCriador(kp.getPublic().getEncoded())
+                    .nonce(new BigInteger(128, sr))
+                    .idCriador("Ewerton PilaCoin").build();
+
+            String pilaJson = new ObjectMapper().writeValueAsString(pilaCoin);
+
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+            byte[] hash = md.digest(pilaJson.getBytes("UTF-8"));
+
+            BigInteger numHash = new BigInteger(hash).abs();
+
+            if (numHash.compareTo(BigInteger.valueOf(Long.parseLong(dificuldade))) < 0) {
+                System.out.println("MINEROU!");
+                System.out.println("Numero de tentativas = " + numTentativas);
+
+            } else {
+
+                numTentativas =  numTentativas.add(BigInteger.ONE);
+            }
+        }
+    }
 }
