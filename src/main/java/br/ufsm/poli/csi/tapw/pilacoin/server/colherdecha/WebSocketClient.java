@@ -1,9 +1,14 @@
 package br.ufsm.poli.csi.tapw.pilacoin.server.colherdecha;
 
 import br.ufsm.poli.csi.tapw.pilacoin.model.PilaCoin;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -11,6 +16,7 @@ import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -21,11 +27,13 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 import static java.math.BigInteger.valueOf;
-
+@JsonPropertyOrder(alphabetic = true)
 @Service
 public class WebSocketClient {
 
@@ -46,14 +54,15 @@ public class WebSocketClient {
     @Scheduled(fixedRate = 3000)
     private void printDificuldade() {
         if (sessionHandler.dificuldade != null) {
-            System.out.println("Dificuldade Atual: " + sessionHandler.dificuldade);
+            System.out.println("Dificuldade Atual --- printDificuldade: " + sessionHandler.dificuldade);
+            inicio();
         }
     }
 
-    private static String getDificuldade() {
-        String dificuldade = String.valueOf(sessionHandler.dificuldade);
-        return dificuldade;
-    }
+//    private static String getDificuldade() {
+//        String dificuldade = String.valueOf(sessionHandler.dificuldade);
+//        return dificuldade;
+//    }
 
     private static class MyStompSessionHandler implements StompSessionHandler {
 
@@ -99,10 +108,10 @@ public class WebSocketClient {
         private String dificuldade;
     }
 
-    public String mineradorPilaCoin (String dififuldade) {
-
-        return null;
-    }
+//    public String mineradorPilaCoin (String dififuldade) {
+//
+//        return null;
+//    }
 
 
     //////////////////////////////////////
@@ -115,10 +124,10 @@ private static void inicio() {
     kp = kpg.generateKeyPair();
 
     new Thread(t1).start();
-    new Thread(t1).start();
-    new Thread(t1).start();
-    new Thread(t1).start();
-    new Thread(t1).start();
+//    new Thread(t1).start();
+//    new Thread(t1).start();
+//    new Thread(t1).start();
+//    new Thread(t1).start();
 }
 
 
@@ -127,15 +136,17 @@ private static void inicio() {
     private static Runnable t1 = new Runnable() {
         public void run() {
             try{
-                miner(getDificuldade());
-            } catch (Exception e){}
-
+                miner(
+                );
+            } catch (Exception e){
+                System.out.println("ERRO AO CHAMAR O miner()");
+            }
         }
     };
 
 
     @SneakyThrows
-    private static void miner(String dificuldade){
+    private static void miner(){
         BigInteger numTentativas = valueOf(0);
 
 
@@ -157,14 +168,22 @@ private static void inicio() {
 
             BigInteger numHash = new BigInteger(hash).abs();
 
-            if (numHash.compareTo(BigInteger.valueOf(Long.parseLong(dificuldade))) < 0) {
-                System.out.println("MINEROU!");
+            if(numHash.compareTo(sessionHandler.dificuldade) < 0){
+//            if (numHash.compareTo(BigInteger.valueOf(Long.parseLong(dificuldade))) < 0) {
+                System.out.println("************************************** MINEROU PRA CARAI!**");
                 System.out.println("Numero de tentativas = " + numTentativas);
-
+                //TODO: mandar o pilaJson
+                //registraPilaCoin(pilaCoin);
             } else {
-
+                //System.out.println("Não MINEROU! ******* AINDA!");
                 numTentativas =  numTentativas.add(BigInteger.ONE);
             }
         }
+    }
+
+
+    //TODO: método pra registrar o pila no server
+    public void registraPilaCoin(PilaCoin pilaCoin) {
+        //TODO: parou aqui
     }
 }
