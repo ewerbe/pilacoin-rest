@@ -84,7 +84,7 @@ public class RegistraUsuarioService {
     @NoArgsConstructor
     @AllArgsConstructor
     @ToString
-    private static class UsuarioRest {
+    public static class UsuarioRest {
         private Long id;
         private byte[] chavePublica;
         private String nome;
